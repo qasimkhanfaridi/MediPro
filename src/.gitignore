@@ -1,0 +1,30 @@
+## SQLite local DB (dev)
+*.db
+*.db-shm
+*.db-wal
+
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+## Node / frontend
+node_modules/
+dist/
+*.local
+.npm/
+.pnpm-store/
+
+## OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.log
+
+## Env (never commit secrets)
+.env
+.env.*.local

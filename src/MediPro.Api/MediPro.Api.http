@@ -1,0 +1,152 @@
+@MediPro.Api_HostAddress = http://localhost:5020
+
+### Health
+GET {{MediPro.Api_HostAddress}}/api/health
+Accept: application/json
+
+### Login (dev seed admin — see appsettings.Development.json)
+POST {{MediPro.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@medipro.local",
+  "password": "ChangeMe!12345"
+}
+
+### Register medical store (pending approval)
+POST {{MediPro.Api_HostAddress}}/api/auth/register-store
+Content-Type: application/json
+
+{
+  "email": "store@example.com",
+  "password": "ChangeMe!12345",
+  "businessName": "Test Pharmacy",
+  "addressLine": "Street 1",
+  "city": "Rawalpindi",
+  "mobile": "03001234567",
+  "contactName": "Owner",
+  "licenseNumber": null
+}
+
+### List stores (admin — paste Bearer token)
+GET {{MediPro.Api_HostAddress}}/api/admin/stores
+Authorization: Bearer {{token}}
+
+### Approve store (replace store id)
+PATCH {{MediPro.Api_HostAddress}}/api/admin/stores/00000000-0000-0000-0000-000000000000/approval
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "Approved",
+  "notes": "Verified"
+}
+
+### List products (Bearer — admin sees inactive too)
+GET {{MediPro.Api_HostAddress}}/api/products?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### List products — with filters (optional query params)
+GET {{MediPro.Api_HostAddress}}/api/products?page=1&pageSize=20&manufacturer=Demo%20Labs&category=Tablet&salt=Demo
+Authorization: Bearer {{token}}
+
+### Filter dropdown values (manufacturers + categories)
+GET {{MediPro.Api_HostAddress}}/api/products/filters
+Authorization: Bearer {{token}}
+
+### Get one product by id (store or admin Bearer)
+GET {{MediPro.Api_HostAddress}}/api/products/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Create product (admin)
+POST {{MediPro.Api_HostAddress}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "skuCode": "DEMO-001",
+  "name": "Demo product",
+  "pack": "10's",
+  "manufacturer": "Demo Labs",
+  "saltComposition": "Demo salt",
+  "category": "Tablet",
+  "tradePrice": 100.00,
+  "mrp": 120.00,
+  "stockQuantity": 50
+}
+
+### Admin — seed demo catalogue (TEST-MED-* SKUs, dev or AllowDemoCatalogEndpoint)
+POST {{MediPro.Api_HostAddress}}/api/admin/catalog/seed-demo-catalog
+Authorization: Bearer {{token}}
+
+### Admin — seed demo pharmacy accounts (*@demo.medipro.local, dev or AllowDemoCatalogEndpoint)
+POST {{MediPro.Api_HostAddress}}/api/admin/stores/seed-demo
+Authorization: Bearer {{token}}
+
+### Admin — low stock (active SKUs with stock ≤ threshold, default 20)
+GET {{MediPro.Api_HostAddress}}/api/admin/catalog/low-stock?threshold=20&max=50
+Authorization: Bearer {{token}}
+
+### Admin — adjust stock by SKU (add 25 units; use negative delta to reduce)
+POST {{MediPro.Api_HostAddress}}/api/admin/catalog/stock-adjustment
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "skuCode": "DEMO-001",
+  "delta": 25
+}
+
+### Cart — get (approved store user token)
+GET {{MediPro.Api_HostAddress}}/api/cart
+Authorization: Bearer {{store_token}}
+
+### Cart — add line (replace product id)
+POST {{MediPro.Api_HostAddress}}/api/cart/items
+Authorization: Bearer {{store_token}}
+Content-Type: application/json
+
+{
+  "productId": "00000000-0000-0000-0000-000000000000",
+  "quantity": 2
+}
+
+### Orders — submit from cart
+POST {{MediPro.Api_HostAddress}}/api/orders/submit
+Authorization: Bearer {{store_token}}
+Content-Type: application/json
+
+{
+  "notes": null
+}
+
+### Orders — list (admin or store)
+GET {{MediPro.Api_HostAddress}}/api/orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Orders — update status (admin)
+PATCH {{MediPro.Api_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "Confirmed",
+  "statusNotes": null
+}
+
+### Catalog — import template (no Bearer required)
+GET {{MediPro.Api_HostAddress}}/api/admin/catalog/import-template
+
+### Admin notifications (Bearer admin)
+GET {{MediPro.Api_HostAddress}}/api/admin/notifications?page=1&pageSize=20&unreadOnly=false
+Authorization: Bearer {{token}}
+
+### Mark notification read (replace id)
+PATCH {{MediPro.Api_HostAddress}}/api/admin/notifications/00000000-0000-0000-0000-000000000000/read
+Authorization: Bearer {{token}}
+
+### Product import — use REST Client multipart form: field name "file", .xlsx body (admin token)
+# POST {{MediPro.Api_HostAddress}}/api/admin/catalog/import
+# Authorization: Bearer {{token}}
+# Content-Type: multipart/form-data; boundary=----abc
+# (attach file in your REST client UI)

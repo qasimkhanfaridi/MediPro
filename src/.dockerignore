@@ -1,0 +1,11 @@
+**/bin
+**/obj
+**/node_modules
+**/.vs
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/dist
+**/.env
+**/.env.*
+**/publish

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediPro — Client Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1f1a;
+      --bg2: #163028;
+      --card: #1a3a30;
+      --ink: #f2f7f4;
+      --muted: #a8c4b8;
+      --accent: #3dbe8c;
+      --accent2: #e8c468;
+      --warn: #e89b6a;
+      --line: rgba(242, 247, 244, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .deck {
+      height: 100%;
+      position: relative;
+    }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem);
+      flex-direction: column;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(61, 190, 140, 0.18), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 90% 100%, rgba(232, 196, 104, 0.1), transparent 50%),
+        linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+    }
+    .slide.active { display: flex; }
+    .slide.cover {
+      text-align: left;
+      justify-content: flex-end;
+      padding-bottom: 12vh;
+    }
+    .kicker {
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+      line-height: 1.1;
+      font-weight: 700;
+      max-width: 14ch;
+      margin-bottom: 1.25rem;
+    }
+    h2 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+      max-width: 22ch;
+    }
+    .lead {
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      color: var(--muted);
+      max-width: 42ch;
+      line-height: 1.5;
+    }
+    .url {
+      display: inline-block;
+      margin-top: 1.75rem;
+      padding: 0.65rem 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.25);
+      color: var(--accent2);
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .card {
+      background: rgba(26, 58, 48, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.25rem 1.35rem;
+    }
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent);
+    }
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    ul.clean {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-width: 52rem;
+    }
+    ul.clean li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.85rem;
+      align-items: start;
+      padding: 0.85rem 1rem;
+      background: rgba(26, 58, 48, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .num {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #0a1814;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .li-title { font-weight: 600; margin-bottom: 0.15rem; }
+    .li-sub { color: var(--muted); font-size: 0.92rem; }
+    table {
+      width: 100%;
+      max-width: 56rem;
+      border-collapse: collapse;
+      font-size: 0.98rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid var(--line);
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    td.ok { color: var(--accent); font-weight: 600; }
+    td.later { color: var(--warn); font-weight: 600; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 56rem;
+    }
+    @media (max-width: 800px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+    .phase {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 0 0.5rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .phase strong { display: block; margin-bottom: 0.25rem; }
+    .phase span { color: var(--muted); font-size: 0.95rem; }
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      background: rgba(15, 31, 26, 0.85);
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: var(--muted);
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+    .nav-hint kbd {
+      font-family: inherit;
+      border: 1px solid var(--line);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+    }
+    .progress {
+      height: 3px;
+      background: var(--line);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 11;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(61, 190, 140, 0.2);
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .script {
+      max-width: 48rem;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 1.05rem;
+    }
+    .script strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="deck" id="deck">
+
+    <!-- 0 -->
+    <section class="slide cover active" data-title="Cover">
+      <p class="kicker">Distributor ← → pharmacy ordering</p>
+      <h1>MediPro pilot demo</h1>
+      <p class="lead">
+        B2B catalogue, cart, orders, and distributor admin — live for client review.
+      </p>
+      <a class="url" href="https://medipro-uat.fly.dev" target="_blank" rel="noopener">
+        https://medipro-uat.fly.dev
+      </a>
+    </section>
+
+    <!-- 1 -->
+    <section class="slide" data-title="What it is">
+      <p class="kicker">The idea</p>
+      <h2>Order capture for licensed pharmacies</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>For pharmacies</h3>
+          <p>Browse your catalogue, see stock availability, add to cart, submit orders from phone or desktop.</p>
+        </div>
+        <div class="card">
+          <h3>For your ops team</h3>
+          <p>Approve stores, manage products &amp; offers, filter orders by city/area, get alerts when work arrives.</p>
+        </div>
+        <div class="card">
+          <h3>What it is not (yet)</h3>
+          <p>Not a billing/ERP replacement. Not online payments. Not a patient-facing pharmacy app.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-title="Live UAT">
+      <p class="kicker">Try it now</p>
+      <h2>Live UAT environment</h2>
+      <ul class="clean">
+        <li>
+          <span class="num">1</span>
+          <div>
+            <div class="li-title">Open the app</div>
+            <div class="li-sub">https://medipro-uat.fly.dev</div>
+          </div>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <div>
+            <div class="li-title">Distributor admin</div>
+            <div class="li-sub">admin@medipro.local — password shared separately (demo only)</div>
+          </div>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <div>
+            <div class="li-title">Sample pharmacy (approved)</div>
+            <div class="li-sub">store.approved1@demo.medipro.local — demo store password</div>
+          </div>
+        </li>
+      </ul>
+      <p class="lead" style="margin-top:1.5rem">Passwords will be rotated before any paid pilot.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-title="Walkthrough">
+      <p class="kicker">15-minute tour</p>
+      <h2>Suggested demo path</h2>
+      <ul class="clean">
+        <li><span class="num">1</span><div><div class="li-title">Admin login → Registered stores</div><div class="li-sub">Approve or review pending pharmacies</div></div></li>
+        <li><span class="num">2</span><div><div class="li-title">Products &amp; stock</div><div class="li-sub">Add/edit SKUs; mark In stock / Out of stock (no qty shown to stores)</div></div></li>
+        <li><span class="num">3</span><div><div class="li-title">Bonus offers</div><div class="li-sub">Product-level 10+1 / 5+1 style badges (per SKU, not company-wide)</div></div></li>
+        <li><span class="num">4</span><div><div class="li-title">Store login → catalogue → cart → submit</div><div class="li-sub">Mobile-friendly ordering flow</div></div></li>
+        <li><span class="num">5</span><div><div class="li-title">Admin → Orders + notifications</div><div class="li-sub">City/area filters, line items, status update, alerts</div></div></li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-title="Your feedback">
+      <p class="kicker">From your UAT feedback</p>
+      <h2>What we shipped next</h2>
+      <table>
+        <thead>
+          <tr><th>Request</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Order lines (SKU, qty, price)</td><td class="ok">Done</td></tr>
+          <tr><td>Filters: city, area, store, date, status</td><td class="ok">Done</td></tr>
+          <tr><td>Stock: Available / Out only (billing-safe)</td><td class="ok">Done</td></tr>
+          <tr><td>Add / deactivate products in admin</td><td class="ok">Done</td></tr>
+          <tr><td>Bonus offers on products</td><td class="ok">Done</td></tr>
+          <tr><td>Email + WhatsApp alerts + 24h pending reminder</td><td class="ok">Done*</td></tr>
+          <tr><td>Online payment gateway</td><td class="later">Later phase</td></tr>
+        </tbody>
+      </table>
+      <p class="lead" style="margin-top:1rem;font-size:0.95rem">* Alerts need SMTP / CallMeBot keys enabled on the server.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-title="Ops features">
+      <p class="kicker">Distributor console</p>
+      <h2>Built for daily ops</h2>
+      <div class="grid">
+        <div class="card"><h3>Stores</h3><p>Pending → Approved / Rejected / Suspended. Only approved shops can order.</p></div>
+        <div class="card"><h3>Catalogue</h3><p>Excel import + one-by-one add. Deactivate without deleting history.</p></div>
+        <div class="card"><h3>Orders</h3><p>Hundreds/day friendly: city &amp; area, store search, dates, status transitions.</p></div>
+        <div class="card"><h3>Offers</h3><p>Per-product bonus schemes with catalogue banners and badges.</p></div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-title="Roadmap">
+      <p class="kicker">How we grow</p>
+      <h2>Demo → Pilot → Internal</h2>
+      <div class="two-col">
+        <div>
+          <div class="phase">
+            <strong>Now — Demo / UAT</strong>
+            <span>Live URL, demo data, walkthrough. Low hosting cost.</span>
+          </div>
+          <div class="phase">
+            <strong>Next — Paid pilot</strong>
+            <span>Your real Excel catalogue, real stores, your passwords, training, backups.</span>
+          </div>
+          <div class="phase">
+            <strong>Later — Internal-grade</strong>
+            <span>Stronger DB, audit logs, ERP export, multi-admin, optional payments &amp; apps.</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Pilot go-live checklist</h3>
+          <p style="margin-bottom:0.75rem">• Import your real SKUs</p>
+          <p style="margin-bottom:0.75rem">• Turn off demo seed &amp; rotate passwords</p>
+          <p style="margin-bottom:0.75rem">• Enable email / WhatsApp for ops</p>
+          <p>• Short ops training (one session)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-title="Q&A">
+      <p class="kicker">Expect these questions</p>
+      <h2>Straight answers</h2>
+      <table>
+        <tbody>
+          <tr><td><strong>Our Excel catalogue?</strong></td><td>Yes — import template + upload.</td></tr>
+          <tr><td><strong>Works on phone?</strong></td><td>Yes — mobile-first web. Native apps later if needed.</td></tr>
+          <tr><td><strong>Payments?</strong></td><td>Orders + credit/offline for now. Gateway later.</td></tr>
+          <tr><td><strong>Stock vs billing mismatch?</strong></td><td>Stores see In / Out only; qty not decremented on order.</td></tr>
+          <tr><td><strong>Security?</strong></td><td>HTTPS, hashed passwords, JWT roles; prod secrets &amp; backups at pilot.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-title="Next step">
+      <p class="kicker">Decision</p>
+      <h2>What we need from you</h2>
+      <ul class="clean">
+        <li><span class="num">1</span><div><div class="li-title">Confirm pilot city &amp; store count</div><div class="li-sub">e.g. Rawalpindi / Islamabad — 5–15 pharmacies</div></div></li>
+        <li><span class="num">2</span><div><div class="li-title">Share a sample Excel catalogue</div><div class="li-sub">Or we walk through the import template together</div></div></li>
+        <li><span class="num">3</span><div><div class="li-title">Name an ops owner</div><div class="li-sub">Who receives alerts and approves stores</div></div></li>
+      </ul>
+      <p class="lead" style="margin-top:1.75rem">Thank you — happy to schedule a live walkthrough on the UAT URL.</p>
+    </section>
+
+    <!-- 9 internal: how to record -->
+    <section class="slide" data-title="Record video">
+      <span class="tag">For delivery team — hide in client export if needed</span>
+      <h2>How to record a demo video</h2>
+      <p class="script">
+        <strong>1.</strong> Open this file fullscreen (<kbd>F11</kbd>) → walk slides 1–8 briefly (~3 min).<br /><br />
+        <strong>2.</strong> Switch to <strong>https://medipro-uat.fly.dev</strong> and click through the 15‑min tour (~8–10 min).<br /><br />
+        <strong>3.</strong> Record with <strong>Loom</strong>, <strong>ShareX</strong>, or Windows <strong>Win + G</strong> (Xbox Game Bar).<br /><br />
+        <strong>4.</strong> Share the Loom/Drive link + this HTML (or Print → PDF of the slides).<br /><br />
+        Tip: use two browser profiles (Admin + Store) so you can switch without logging out repeatedly.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <span>MediPro · Client demo</span>
+    <span class="nav-hint"><kbd>←</kbd> <kbd>→</kbd> or click · <span id="counter">1 / 1</span></span>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const bar = document.getElementById("bar");
+    const counter = document.getElementById("counter");
+    let i = 0;
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+      bar.style.width = ((i + 1) / slides.length * 100) + "%";
+      counter.textContent = (i + 1) + " / " + slides.length;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+        e.preventDefault();
+        show(i + 1);
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        show(i - 1);
+      } else if (e.key === "Home") show(0);
+      else if (e.key === "End") show(slides.length - 1);
+    });
+
+    document.getElementById("deck").addEventListener("click", (e) => {
+      if (e.target.closest("a")) return;
+      const x = e.clientX / window.innerWidth;
+      show(x > 0.35 ? i + 1 : i - 1);
+    });
+
+    show(0);
+  </script>
+</body>
+</html>

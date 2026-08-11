@@ -1,0 +1,31 @@
+# Build / deps
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/wwwroot/
+*.user
+*.suo
+.vs/
+.idea/
+*.swp
+
+# Local databases & secrets
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+**/secrets.json
+**/appsettings.*.local.json
+
+# OS / logs
+Thumbs.db
+Desktop.ini
+*.log
+npm-debug.log*
+
+# Publish / docker leftovers
+**/publish/
+*.tar
+*.tar.gz

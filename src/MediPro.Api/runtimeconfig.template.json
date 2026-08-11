@@ -1,0 +1,9 @@
+{
+  "runtimeOptions": {
+    "configProperties": {
+      "System.Runtime.TieredCompilation": false,
+      "System.GC.Server": true,
+      "Microsoft.AspNetCore.Hosting.PreferHostingUrls": true
+    }
+  }
+}

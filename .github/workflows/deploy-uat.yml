@@ -16,9 +16,6 @@ jobs:
   deploy:
     name: fly deploy medipro-uat
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src
     steps:
       - name: Require FLY_API_TOKEN
         env:
@@ -35,6 +32,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy
+        working-directory: src
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: flyctl deploy --app medipro-uat --remote-only

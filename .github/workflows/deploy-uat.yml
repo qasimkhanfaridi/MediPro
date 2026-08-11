@@ -1,0 +1,40 @@
+name: Deploy UAT (Fly.io)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/deploy-uat.yml"
+
+concurrency:
+  group: deploy-uat
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: fly deploy medipro-uat
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Require FLY_API_TOKEN
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "::error::Add repository secret FLY_API_TOKEN (Fly deploy token). See docs/17-GITHUB-ACTIONS.md"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --app medipro-uat --remote-only

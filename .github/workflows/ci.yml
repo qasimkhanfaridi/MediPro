@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API build & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: |
+          dotnet restore MediPro.Api/MediPro.Api.csproj
+          dotnet restore MediPro.Api.Tests/MediPro.Api.Tests.csproj
+
+      - name: Build
+        run: |
+          dotnet build MediPro.Api/MediPro.Api.csproj -c Release --no-restore
+          dotnet build MediPro.Api.Tests/MediPro.Api.Tests.csproj -c Release --no-restore
+
+      - name: Test
+        run: dotnet test MediPro.Api.Tests/MediPro.Api.Tests.csproj -c Release --no-build --verbosity normal
+
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/MediPro.Web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/MediPro.Web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_API_ORIGIN: ""
+        run: npm run build

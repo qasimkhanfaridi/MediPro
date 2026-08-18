@@ -55,23 +55,26 @@ export function AdminBonusSchemesPage() {
   }, [mp.token, mp.isAdmin, loadSchemes])
 
   useEffect(() => {
-    if (!mp.token || form.productSearch.trim().length < 2) {
+    if (!mp.token || form.productSearch.trim().length < 1) {
       setProductHits([])
       return
     }
     const q = form.productSearch.trim()
     let cancelled = false
-    void (async () => {
-      const res = await apiFetch(
-        `/api/products?search=${encodeURIComponent(q)}&pageSize=8`,
-        { accessToken: mp.token },
-      )
-      if (!res.ok || cancelled) return
-      const data = (await res.json()) as { items: ProductDto[] }
-      if (!cancelled) setProductHits(data.items)
-    })()
+    const handle = window.setTimeout(() => {
+      void (async () => {
+        const res = await apiFetch(
+          `/api/products?search=${encodeURIComponent(q)}&pageSize=8`,
+          { accessToken: mp.token },
+        )
+        if (!res.ok || cancelled) return
+        const data = (await res.json()) as { items: ProductDto[] }
+        if (!cancelled) setProductHits(data.items)
+      })()
+    }, 200)
     return () => {
       cancelled = true
+      window.clearTimeout(handle)
     }
   }, [form.productSearch, mp.token])
 

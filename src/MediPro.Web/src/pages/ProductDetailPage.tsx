@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiFetch, parseErrorDetail } from '../api/client'
 import type { ProductDto } from '../api/types'
+import { AddToCartDialog } from '../components/AddToCartDialog'
 import { useMediPro } from '../medipro/MediProProvider'
 
 function formatPkr(n: number): string {
@@ -17,6 +18,7 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<ProductDto | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [askQty, setAskQty] = useState(false)
 
   useEffect(() => {
     if (!mp.token || !productId) {
@@ -160,7 +162,7 @@ export function ProductDetailPage() {
                   type="button"
                   className="btn-primary"
                   disabled={mp.busy === `cart-add-${product.id}` || product.inStock === false}
-                  onClick={() => void mp.addOneToCart(product.id)}
+                  onClick={() => setAskQty(true)}
                 >
                   {product.inStock === false
                     ? 'Unavailable'
@@ -188,7 +190,26 @@ export function ProductDetailPage() {
             </div>
           </div>
         )}
+        {mp.cartError && (
+          <p className="error" role="alert">
+            {mp.cartError}
+          </p>
+        )}
       </section>
+
+      {askQty && product && (
+        <AddToCartDialog
+          product={product}
+          busy={mp.busy === `cart-add-${product.id}`}
+          onCancel={() => setAskQty(false)}
+          onConfirm={(q) => {
+            void (async () => {
+              await mp.addOneToCart(product.id, q)
+              setAskQty(false)
+            })()
+          }}
+        />
+      )}
     </main>
   )
 }

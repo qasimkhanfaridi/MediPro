@@ -65,12 +65,13 @@ public class ProductsController(MediProDbContext db, ProductDtoMapper productMap
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var term = search.Trim();
+            // Lower both sides: SQLite translates string.Contains to instr(), which is case-sensitive.
+            var term = search.Trim().ToLowerInvariant();
             query = query.Where(p =>
-                p.Name.Contains(term)
-                || p.Manufacturer.Contains(term)
-                || p.SaltComposition.Contains(term)
-                || p.SkuCode.Contains(term));
+                p.Name.ToLower().Contains(term)
+                || p.Manufacturer.ToLower().Contains(term)
+                || p.SaltComposition.ToLower().Contains(term)
+                || p.SkuCode.ToLower().Contains(term));
         }
 
         var m = NormalizeCatalogFilter(manufacturer, 256);
@@ -81,9 +82,9 @@ public class ProductsController(MediProDbContext db, ProductDtoMapper productMap
         if (cat is not null)
             query = query.Where(p => p.Category != null && p.Category == cat);
 
-        var saltTerm = NormalizeCatalogFilter(salt, 512);
+        var saltTerm = NormalizeCatalogFilter(salt, 512)?.ToLowerInvariant();
         if (saltTerm is not null)
-            query = query.Where(p => p.SaltComposition.Contains(saltTerm));
+            query = query.Where(p => p.SaltComposition.ToLower().Contains(saltTerm));
 
         var total = await query.CountAsync(ct);
         var products = await query

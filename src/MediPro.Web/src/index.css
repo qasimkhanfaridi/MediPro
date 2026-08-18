@@ -23,6 +23,10 @@
   --mp-success-bg: #e8f5ec;
   --mp-success-text: #0d4d26;
   --mp-danger: #b42318;
+  --mp-offer-bg: #fdf3e3;
+  --mp-offer-border: #e3c48c;
+  --mp-offer-text: #85500a;
+  --mp-offer-accent: #c2820c;
   --mp-radius: 14px;
   --mp-radius-sm: 10px;
   --mp-shadow: 0 1px 3px rgba(20, 24, 32, 0.06);
@@ -58,6 +62,10 @@ body {
     --mp-success-bg: #143322;
     --mp-success-text: #8fd4a6;
     --mp-danger: #f97066;
+    --mp-offer-bg: #33280f;
+    --mp-offer-border: #64511f;
+    --mp-offer-text: #f0c882;
+    --mp-offer-accent: #d9a340;
     --mp-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   }
 }

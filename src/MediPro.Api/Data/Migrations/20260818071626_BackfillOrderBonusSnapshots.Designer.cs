@@ -3,6 +3,7 @@ using System;
 using MediPro.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MediPro.Api.Data.Migrations
 {
     [DbContext(typeof(MediProDbContext))]
-    partial class MediProDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818071626_BackfillOrderBonusSnapshots")]
+    partial class BackfillOrderBonusSnapshots
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.12");

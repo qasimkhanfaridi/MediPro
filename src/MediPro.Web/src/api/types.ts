@@ -126,6 +126,8 @@ export type OrderLineDto = {
   packSnapshot: string
   unitPriceSnapshot: number
   quantity: number
+  bonusLabelSnapshot: string | null
+  bonusQuantitySnapshot: number
   lineTotal: number
 }
 
@@ -133,6 +135,10 @@ export type OrderDetailDto = {
   id: string
   storeId: string
   storeName: string
+  storeAddress: string
+  storeCity: string
+  storeArea: string
+  storeMobile: string
   status: string
   statusNotes: string | null
   totalAmount: number

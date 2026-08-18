@@ -76,6 +76,7 @@ public class MediProDbContext(DbContextOptions<MediProDbContext> options) : DbCo
             e.HasKey(x => x.Id);
             e.Property(x => x.ProductNameSnapshot).HasMaxLength(512).IsRequired();
             e.Property(x => x.PackSnapshot).HasMaxLength(64).IsRequired();
+            e.Property(x => x.BonusLabelSnapshot).HasMaxLength(32);
             e.Property(x => x.UnitPriceSnapshot).HasPrecision(18, 4);
             e.Property(x => x.LineTotal).HasPrecision(18, 4);
             e.HasOne(x => x.Order).WithMany(x => x.Lines).HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);

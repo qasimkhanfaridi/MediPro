@@ -14,5 +14,7 @@ public class OrderLine
     public string PackSnapshot { get; set; } = "";
     public decimal UnitPriceSnapshot { get; set; }
     public int Quantity { get; set; }
+    public string? BonusLabelSnapshot { get; set; }
+    public int BonusQuantitySnapshot { get; set; }
     public decimal LineTotal { get; set; }
 }

@@ -244,6 +244,8 @@ public sealed class OrderLineDto
     public string PackSnapshot { get; set; } = "";
     public decimal UnitPriceSnapshot { get; set; }
     public int Quantity { get; set; }
+    public string? BonusLabelSnapshot { get; set; }
+    public int BonusQuantitySnapshot { get; set; }
     public decimal LineTotal { get; set; }
 }
 
@@ -266,6 +268,10 @@ public sealed class OrderDetailDto
     public Guid Id { get; set; }
     public Guid StoreId { get; set; }
     public string StoreName { get; set; } = "";
+    public string StoreAddress { get; set; } = "";
+    public string StoreCity { get; set; } = "";
+    public string StoreArea { get; set; } = "";
+    public string StoreMobile { get; set; } = "";
     public string Status { get; set; } = "";
     public string? StatusNotes { get; set; }
     public decimal TotalAmount { get; set; }

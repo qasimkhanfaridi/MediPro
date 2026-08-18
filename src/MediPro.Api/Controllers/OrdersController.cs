@@ -73,11 +73,21 @@ public class OrdersController(
             TotalAmount = 0,
         };
 
+        var schemes = BonusSchemeResolver.FilterActive(
+            await db.BonusSchemes.AsNoTracking()
+                .Where(s => s.TenantId == tenantId)
+                .ToListAsync(ct),
+            now);
+
         decimal total = 0;
         foreach (var line in cart.Lines)
         {
             var unit = line.Product.TradePrice;
             var lineTotal = unit * line.Quantity;
+            var scheme = BonusSchemeResolver.ResolveForProduct(schemes, line.Product);
+            var bonusQuantity = scheme is null
+                ? 0
+                : (line.Quantity / scheme.BuyQuantity) * scheme.BonusQuantity;
             total += lineTotal;
 
             order.Lines.Add(new OrderLine
@@ -89,6 +99,10 @@ public class OrdersController(
                 PackSnapshot = line.Product.Pack,
                 UnitPriceSnapshot = unit,
                 Quantity = line.Quantity,
+                BonusLabelSnapshot = scheme is null
+                    ? null
+                    : BonusSchemeResolver.FormatLabel(scheme.BuyQuantity, scheme.BonusQuantity),
+                BonusQuantitySnapshot = bonusQuantity,
                 LineTotal = lineTotal,
             });
 
@@ -175,11 +189,11 @@ public class OrdersController(
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var term = search.Trim();
+            var term = search.Trim().ToLowerInvariant();
             query = query.Where(x =>
-                x.s.BusinessName.Contains(term)
-                || x.s.ContactName.Contains(term)
-                || x.s.Mobile.Contains(term));
+                x.s.BusinessName.ToLower().Contains(term)
+                || x.s.ContactName.ToLower().Contains(term)
+                || x.s.Mobile.ToLower().Contains(term));
         }
 
         if (from is { } fromDt)
@@ -311,7 +325,15 @@ public class OrdersController(
             from o in db.Orders.AsNoTracking()
             join s in db.Stores.AsNoTracking() on o.StoreId equals s.Id
             where o.Id == orderId && o.TenantId == tenantId
-            select new { o, s.BusinessName }).FirstOrDefaultAsync(ct);
+            select new
+            {
+                o,
+                s.BusinessName,
+                s.AddressLine,
+                s.City,
+                s.Area,
+                s.Mobile,
+            }).FirstOrDefaultAsync(ct);
 
         if (row is null)
             return null;
@@ -326,6 +348,8 @@ public class OrdersController(
                 PackSnapshot = l.PackSnapshot,
                 UnitPriceSnapshot = l.UnitPriceSnapshot,
                 Quantity = l.Quantity,
+                BonusLabelSnapshot = l.BonusLabelSnapshot,
+                BonusQuantitySnapshot = l.BonusQuantitySnapshot,
                 LineTotal = l.LineTotal,
             })
             .ToListAsync(ct);
@@ -335,6 +359,10 @@ public class OrdersController(
             Id = row.o.Id,
             StoreId = row.o.StoreId,
             StoreName = row.BusinessName,
+            StoreAddress = row.AddressLine,
+            StoreCity = row.City,
+            StoreArea = row.Area,
+            StoreMobile = row.Mobile,
             Status = row.o.Status.ToString(),
             StatusNotes = row.o.StatusNotes,
             TotalAmount = row.o.TotalAmount,

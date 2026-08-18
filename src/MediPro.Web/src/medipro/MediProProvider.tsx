@@ -59,7 +59,7 @@ export type MediProContextValue = {
   cart: CartDto | null
   cartError: string | null
   loadCart: () => Promise<void>
-  addOneToCart: (productId: string) => Promise<void>
+  addOneToCart: (productId: string, quantity?: number) => Promise<void>
   setCartLineQuantity: (productId: string, quantity: number) => Promise<void>
   removeCartLine: (productId: string) => Promise<void>
   submitOrder: () => Promise<void>
@@ -216,6 +216,7 @@ export function MediProProvider({ children }: { children: ReactNode }) {
     category?: string
     salt?: string
   }>({})
+  const productsRequestIdRef = useRef(0)
   const lastOrdersQueryRef = useRef<{
     city?: string
     area?: string
@@ -444,10 +445,9 @@ export function MediProProvider({ children }: { children: ReactNode }) {
 
       lastProductsQueryRef.current = query
 
-      if (!quiet) {
-        setProducts(null)
-        setBusy('products')
-      }
+      // Keep the previous list on screen while searching so live typing does not flash empty.
+      const requestId = ++productsRequestIdRef.current
+      if (!quiet) setBusy('products')
       const params = new URLSearchParams({ page: '1', pageSize: '24' })
       if (query.search) params.set('search', query.search)
       if (query.manufacturer) params.set('manufacturer', query.manufacturer)
@@ -457,22 +457,23 @@ export function MediProProvider({ children }: { children: ReactNode }) {
         const res = await apiFetch(`/api/products?${params}`, {
           accessToken: token,
         })
+        if (requestId !== productsRequestIdRef.current) return
         const text = await res.text()
+        if (requestId !== productsRequestIdRef.current) return
         if (!res.ok) {
           setProductsError(parseErrorDetail(text) || `HTTP ${res.status}`)
-          if (!quiet) setProducts(null)
           return
         }
         setProducts(JSON.parse(text) as PagedProducts)
       } finally {
-        if (!quiet) setBusy(null)
+        if (!quiet && requestId === productsRequestIdRef.current) setBusy(null)
       }
     },
     [token],
   )
 
   const addOneToCart = useCallback(
-    async (productId: string) => {
+    async (productId: string, quantity = 1) => {
       if (!token) return
       setCartError(null)
       setBusy(`cart-add-${productId}`)
@@ -481,7 +482,7 @@ export function MediProProvider({ children }: { children: ReactNode }) {
           method: 'POST',
           accessToken: token,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, quantity: 1 }),
+          body: JSON.stringify({ productId, quantity: Math.max(1, Math.trunc(quantity)) }),
         })
         const text = await res.text()
         if (!res.ok) {

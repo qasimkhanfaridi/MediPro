@@ -47,8 +47,13 @@ export function AdminProductsPage() {
   }
 
   useEffect(() => {
-    if (mp.token && mp.isAdmin) void load()
-  }, [mp.token, mp.isAdmin])
+    if (!mp.token || !mp.isAdmin) return
+    const handle = window.setTimeout(() => {
+      void load(search)
+    }, 250)
+    return () => window.clearTimeout(handle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- debounce live search by `search`
+  }, [mp.token, mp.isAdmin, search])
 
   async function submitCreate(e: FormEvent) {
     e.preventDefault()
@@ -257,13 +262,21 @@ export function AdminProductsPage() {
           >
             <input
               type="search"
-              placeholder="Search SKU or name…"
+              placeholder="Type SKU or name…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              autoComplete="off"
             />
-            <button type="submit" className="secondary" disabled={busy === 'load'}>
-              Search
-            </button>
+            {search && (
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy === 'load'}
+                onClick={() => setSearch('')}
+              >
+                Clear
+              </button>
+            )}
           </form>
         </div>
 

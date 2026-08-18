@@ -1,7 +1,8 @@
-import { type FormEvent, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiFetch, parseErrorDetail } from '../api/client'
-import type { BonusSchemeSummary, CatalogFilterOptions } from '../api/types'
+import type { BonusSchemeSummary, CatalogFilterOptions, ProductDto } from '../api/types'
+import { AddToCartDialog } from '../components/AddToCartDialog'
 import { useMediPro } from '../medipro/MediProProvider'
 
 function formatPkr(n: number): string {
@@ -13,6 +14,7 @@ function formatPkr(n: number): string {
 
 export function CatalogPage() {
   const mp = useMediPro()
+  const navigate = useNavigate()
   const [searchInput, setSearchInput] = useState('')
   const [manufacturer, setManufacturer] = useState('')
   const [category, setCategory] = useState('')
@@ -20,10 +22,60 @@ export function CatalogPage() {
   const [filterOptions, setFilterOptions] = useState<CatalogFilterOptions | null>(null)
   const [filterOptionsError, setFilterOptionsError] = useState<string | null>(null)
   const [bonusOffers, setBonusOffers] = useState<BonusSchemeSummary[]>([])
+  const [suggestions, setSuggestions] = useState<ProductDto[]>([])
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [pending, setPending] = useState<ProductDto | null>(null)
+  const searchBoxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (mp.token) void mp.loadProducts()
-  }, [mp.token, mp.loadProducts])
+    if (!mp.token) return
+    const handle = window.setTimeout(() => {
+      void mp.loadProducts({
+        search: searchInput,
+        manufacturer: manufacturer || undefined,
+        category: category || undefined,
+        salt: salt || undefined,
+      })
+    }, 250)
+    return () => window.clearTimeout(handle)
+  }, [mp.token, mp.loadProducts, searchInput, manufacturer, category, salt])
+
+  // Type-ahead list under the search box, independent of the grid below.
+  useEffect(() => {
+    const q = searchInput.trim()
+    if (!mp.token || q.length < 1) {
+      setSuggestions([])
+      return
+    }
+    let cancelled = false
+    const handle = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await apiFetch(
+            `/api/products?search=${encodeURIComponent(q)}&pageSize=8`,
+            { accessToken: mp.token },
+          )
+          if (!res.ok || cancelled) return
+          const data = (await res.json()) as { items: ProductDto[] }
+          if (!cancelled) setSuggestions(data.items)
+        } catch {
+          if (!cancelled) setSuggestions([])
+        }
+      })()
+    }, 200)
+    return () => {
+      cancelled = true
+      window.clearTimeout(handle)
+    }
+  }, [searchInput, mp.token])
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!searchBoxRef.current?.contains(e.target as Node)) setSuggestOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [])
 
   useEffect(() => {
     if (!mp.token) {
@@ -107,7 +159,25 @@ export function CatalogPage() {
     setManufacturer('')
     setCategory('')
     setSalt('')
-    void mp.loadProducts()
+    setSuggestOpen(false)
+  }
+
+  /** Pharmacy accounts get the quantity prompt; anyone else just opens the product. */
+  function pickSuggestion(product: ProductDto) {
+    setSuggestOpen(false)
+    if (mp.canUseCart) setPending(product)
+    else navigate(`/catalog/${product.id}`)
+  }
+
+  function askQuantity(product: ProductDto) {
+    setSuggestOpen(false)
+    setPending(product)
+  }
+
+  async function confirmAdd(quantity: number) {
+    if (!pending) return
+    await mp.addOneToCart(pending.id, quantity)
+    setPending(null)
   }
 
   const activeFilterBits: string[] = []
@@ -121,37 +191,74 @@ export function CatalogPage() {
       <header className="page-header">
         <h1 className="page-title">Catalogue</h1>
         <p className="page-lead">
-          Search and combine filters (company, category, salt). Prices are trade (PKR)
-          before any distributor discounts.
+          Type to search — results update as you go. Combine with company, category, or
+          salt filters. Prices are trade (PKR) before any distributor discounts.
         </p>
       </header>
 
       <section className="panel">
         <form className="catalog-toolbar catalog-toolbar-stack" onSubmit={runSearch}>
-          <div className="catalog-search-row">
+          <div className="catalog-search-row" ref={searchBoxRef}>
             <label className="visually-hidden" htmlFor="catalog-search">
               Search products
             </label>
-            <input
-              id="catalog-search"
-              className="catalog-search-input"
-              type="search"
-              placeholder="Search products…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              autoComplete="off"
-            />
-            <button type="submit" className="btn-primary" disabled={mp.busy === 'products'}>
-              {mp.busy === 'products' ? 'Searching…' : 'Apply'}
-            </button>
-            <button
-              type="button"
-              className="secondary"
-              disabled={mp.busy === 'products'}
-              onClick={() => showAll()}
-            >
-              Show all
-            </button>
+            <div className="catalog-search-box">
+              <input
+                id="catalog-search"
+                className="catalog-search-input"
+                type="search"
+                placeholder="Type a name, SKU, company or salt…"
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value)
+                  setSuggestOpen(true)
+                }}
+                onFocus={() => setSuggestOpen(true)}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={suggestOpen && suggestions.length > 0}
+                aria-controls="catalog-suggestions"
+                autoFocus
+              />
+              {suggestOpen && searchInput.trim() && (
+                <ul className="search-suggestions" id="catalog-suggestions" role="listbox">
+                  {suggestions.length === 0 ? (
+                    <li className="search-suggestion-empty">No match yet — keep typing</li>
+                  ) : (
+                    suggestions.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          className="search-suggestion"
+                          disabled={mp.canUseCart && s.inStock === false}
+                          onClick={() => pickSuggestion(s)}
+                        >
+                          <span className="search-suggestion-name">{s.name}</span>
+                          <span className="search-suggestion-meta">
+                            {s.pack} · {s.manufacturer}
+                            {s.bonusLabel ? ` · ${s.bonusLabel}` : ''}
+                            {s.inStock === false ? ' · out of stock' : ''}
+                          </span>
+                          <span className="search-suggestion-price">
+                            {formatPkr(Number(s.tradePrice))} PKR
+                          </span>
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              )}
+            </div>
+            {(searchInput || manufacturer || category || salt) && (
+              <button
+                type="button"
+                className="secondary"
+                disabled={mp.busy === 'products'}
+                onClick={() => showAll()}
+              >
+                Clear
+              </button>
+            )}
             {mp.canUseCart && (
               <Link to="/cart" className="btn btn-ghost catalog-cart-link">
                 Cart →
@@ -233,19 +340,24 @@ export function CatalogPage() {
         )}
 
         {mp.products && (
-          <p className="catalog-meta">
+          <p className="catalog-meta" aria-live="polite">
+            {mp.busy === 'products' ? 'Updating… · ' : ''}
             {mp.products.totalCount} product
             {mp.products.totalCount === 1 ? '' : 's'}
             {activeFilterBits.length > 0 ? ` · ${activeFilterBits.join(' · ')}` : ''}
           </p>
         )}
 
+        {!mp.products && mp.busy === 'products' && (
+          <p className="catalog-meta">Loading products…</p>
+        )}
+
         {mp.products && mp.products.items.length === 0 && (
           <div className="empty-state">
             <p className="empty-title">No products found</p>
             <p className="empty-text">
-              Try another search or filter combination, or ask your distributor to
-              publish SKUs to your catalogue.
+              Try another letter or filter, or ask your distributor to publish SKUs to your
+              catalogue.
             </p>
           </div>
         )}
@@ -295,7 +407,7 @@ export function CatalogPage() {
                       disabled={
                         mp.busy === `cart-add-${p.id}` || p.inStock === false
                       }
-                      onClick={() => void mp.addOneToCart(p.id)}
+                      onClick={() => askQuantity(p)}
                     >
                       {p.inStock === false
                         ? 'Unavailable'
@@ -317,7 +429,21 @@ export function CatalogPage() {
             {mp.productsError}
           </p>
         )}
+        {mp.cartError && (
+          <p className="error" role="alert">
+            {mp.cartError}
+          </p>
+        )}
       </section>
+
+      {pending && (
+        <AddToCartDialog
+          product={pending}
+          busy={mp.busy === `cart-add-${pending.id}`}
+          onCancel={() => setPending(null)}
+          onConfirm={(q) => void confirmAdd(q)}
+        />
+      )}
     </main>
   )
 }

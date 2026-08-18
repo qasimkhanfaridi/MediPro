@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { OrderDetailDto } from '../api/types'
+import { OrderReceipt } from '../components/OrderReceipt'
 import { useMediPro } from '../medipro/MediProProvider'
 
 export function OrdersPage() {
@@ -96,17 +97,10 @@ export function OrdersPage() {
                   style={{ marginTop: '0.5rem' }}
                   onClick={() => void toggleDetail(o.id)}
                 >
-                  {expandedId === o.id ? 'Hide items' : 'View items'}
+                  {expandedId === o.id ? 'Hide receipt' : 'View receipt'}
                 </button>
                 {expandedId === o.id && details[o.id] && (
-                  <ul className="plist" style={{ marginTop: '0.65rem' }}>
-                    {details[o.id].lines.map((line, i) => (
-                      <li key={`${line.productId}-${i}`}>
-                        {line.productNameSnapshot} · {line.packSnapshot} · qty{' '}
-                        {line.quantity} · {line.lineTotal.toFixed(2)} PKR
-                      </li>
-                    ))}
-                  </ul>
+                  <OrderReceipt order={details[o.id]} />
                 )}
               </li>
             ))}

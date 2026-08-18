@@ -1,6 +1,7 @@
 import { Fragment, type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { OrderDetailDto } from '../api/types'
+import { OrderReceipt } from '../components/OrderReceipt'
 import { useMediPro } from '../medipro/MediProProvider'
 
 const ORDER_STATUSES = [
@@ -308,42 +309,7 @@ export function AdminOrdersPage() {
                             {detailLoading === o.id && !detail && (
                               <p className="meta">Loading line items…</p>
                             )}
-                            {detail && (
-                              <>
-                                {detail.notes && (
-                                  <p className="help">
-                                    <strong>Store notes:</strong> {detail.notes}
-                                  </p>
-                                )}
-                                <table className="store-table order-lines-table">
-                                  <thead>
-                                    <tr>
-                                      <th>Product</th>
-                                      <th>Pack</th>
-                                      <th>Qty</th>
-                                      <th>Unit (PKR)</th>
-                                      <th>Line total</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {detail.lines.map((line, i) => (
-                                      <tr key={`${line.productId}-${i}`}>
-                                        <td>{line.productNameSnapshot}</td>
-                                        <td>{line.packSnapshot}</td>
-                                        <td>{line.quantity}</td>
-                                        <td>{formatPkr(Number(line.unitPriceSnapshot))}</td>
-                                        <td>{formatPkr(Number(line.lineTotal))}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                                <p className="meta">
-                                  {detail.lines.length} line
-                                  {detail.lines.length === 1 ? '' : 's'} · Order total{' '}
-                                  {formatPkr(Number(detail.totalAmount))} {detail.currency}
-                                </p>
-                              </>
-                            )}
+                            {detail && <OrderReceipt order={detail} />}
                           </td>
                         </tr>
                       )}

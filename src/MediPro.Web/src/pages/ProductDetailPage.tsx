@@ -56,7 +56,10 @@ export function ProductDetailPage() {
         <section className="panel panel-center">
           <h1 className="page-title">Product</h1>
           <p className="page-lead">Sign in to view trade details.</p>
-          <Link to="/" className="btn btn-primary">
+          <Link
+            to={`/login?next=${encodeURIComponent(`/catalog/${productId ?? ''}`)}`}
+            className="btn btn-primary"
+          >
             Sign in
           </Link>
         </section>
@@ -89,17 +92,6 @@ export function ProductDetailPage() {
         )}
         {!loading && !error && product && (
           <div className="product-detail">
-            {product.imageUrl ? (
-              <div className="product-detail-hero">
-                <img
-                  className="product-detail-hero-img"
-                  src={product.imageUrl}
-                  alt=""
-                  loading="eager"
-                  decoding="async"
-                />
-              </div>
-            ) : null}
             <div className="product-detail-head">
               <span className="product-sku">{product.skuCode}</span>
               {product.bonusLabel && (

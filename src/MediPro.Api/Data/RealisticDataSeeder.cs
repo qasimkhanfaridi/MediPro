@@ -154,7 +154,6 @@ public static class RealisticDataSeeder
                 Mrp = med.Mrp,
                 StockQuantity = stockQty,
                 IsActive = isActive,
-                ImageUrl = $"https://via.placeholder.com/300x300?text={Uri.EscapeDataString(med.Name)}",
                 CreatedAtUtc = now.AddDays(-random.Next(1, 180)),
                 UpdatedAtUtc = now.AddDays(-random.Next(0, 30))
             });

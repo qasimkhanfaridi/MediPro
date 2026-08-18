@@ -13,7 +13,6 @@ const emptyCreate = {
   category: '',
   tradePrice: '',
   mrp: '',
-  imageUrl: '',
 }
 
 export function AdminProductsPage() {
@@ -71,7 +70,6 @@ export function AdminProductsPage() {
           category: create.category.trim() || null,
           tradePrice: Number(create.tradePrice),
           mrp: create.mrp.trim() ? Number(create.mrp) : null,
-          imageUrl: create.imageUrl.trim() || null,
           stockQuantity: null,
         }),
       })

@@ -1,281 +1,196 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  defaultAdminEmail,
-  defaultAdminPassword,
-} from '../api/constants'
+import { Icon, type IconName } from '../components/Icon'
 import { useMediPro } from '../medipro/MediProProvider'
 
-const isDev = import.meta.env.DEV
+type Tile = {
+  to: string
+  icon: IconName
+  label: string
+  hint: string
+  note?: string
+  locked?: boolean
+}
+
+function TileLink({ tile }: { tile: Tile }) {
+  return (
+    <Link
+      to={tile.locked ? `/login?next=${encodeURIComponent(tile.to)}` : tile.to}
+      className={tile.locked ? 'tile tile-locked' : 'tile'}
+    >
+      <span className="tile-icon">
+        <Icon name={tile.icon} />
+      </span>
+      <span className="tile-label">{tile.label}</span>
+      <span className="tile-hint">{tile.hint}</span>
+      {tile.note && <span className="tile-note">{tile.note}</span>}
+      {tile.locked && (
+        <span className="tile-lock">
+          <Icon name="lock" />
+          Sign in needed
+        </span>
+      )}
+    </Link>
+  )
+}
 
 export function HomePage() {
   const mp = useMediPro()
+  const { token, isAdmin, stores, loadStores } = mp
+
+  useEffect(() => {
+    if (token && isAdmin && !stores) void loadStores({ quiet: true })
+  }, [token, isAdmin, stores, loadStores])
+
+  const cartCount = mp.cart?.lines.length ?? 0
+  const pendingPharmacies =
+    mp.stores?.filter((s) => s.approvalStatus === 'Pending').length ?? 0
+  const signedOut = !mp.token
+
+  const tiles: Tile[] = [
+    {
+      to: '/catalog',
+      icon: 'medicine',
+      label: 'Medicines',
+      hint: signedOut
+        ? 'Browse the price list'
+        : mp.canUseCart
+          ? 'Search and add to your cart'
+          : 'See the price list',
+      locked: signedOut,
+    },
+  ]
+
+  if (signedOut || mp.canUseCart) {
+    tiles.push({
+      to: '/cart',
+      icon: 'cart',
+      label: 'My cart',
+      hint: 'Check items and place the order',
+      note: cartCount > 0 ? `${cartCount} item${cartCount === 1 ? '' : 's'}` : undefined,
+      locked: signedOut,
+    })
+  }
+
+  tiles.push({
+    to: isAdmin ? '/admin/orders' : '/orders',
+    icon: 'orders',
+    label: isAdmin ? 'Orders' : 'My orders',
+    hint: isAdmin ? 'See and update every order' : 'See what you ordered before',
+    locked: signedOut,
+  })
+
+  if (isAdmin) {
+    tiles.push(
+      {
+        to: '/admin',
+        icon: 'pharmacy',
+        label: 'Pharmacies',
+        hint: 'Approve new pharmacies',
+        note: pendingPharmacies > 0 ? `${pendingPharmacies} waiting` : undefined,
+      },
+      {
+        to: '/admin/products',
+        icon: 'box',
+        label: 'Products',
+        hint: 'Add products and set stock',
+      },
+      {
+        to: '/admin/bonus-schemes',
+        icon: 'offer',
+        label: 'Offers',
+        hint: 'Bonus deals like 10 + 1 free',
+      },
+    )
+  }
+
+  const steps: { icon: IconName; title: string; text: string }[] = [
+    {
+      icon: 'search',
+      title: 'Find your medicines',
+      text: 'Search by brand, salt or company and see trade prices for your pharmacy.',
+    },
+    {
+      icon: 'cart',
+      title: 'Fill the cart',
+      text: 'Add packs, check bonus offers like 10 + 1 free, and see the total before you send it.',
+    },
+    {
+      icon: 'truck',
+      title: 'Send and track',
+      text: 'Your distributor confirms the order and you follow it until it reaches your counter.',
+    },
+  ]
 
   return (
-    <>
-      <section className="hero">
-        <p className="hero-eyebrow">B2B wholesale · Pakistan</p>
-        <h1 className="hero-title">Order medicines for your pharmacy with confidence</h1>
-        <p className="hero-lead">
-          MediPro connects licensed pharmacies with distributors: browse approved
-          catalogues, build carts in PKR, and submit orders in one place.
+    <main className="main home">
+      {mp.healthError && (
+        <p className="notice notice-bad" role="alert">
+          MediPro is not responding right now. Check your internet, then try again.
         </p>
-        <div className="hero-actions">
-          {mp.token ? (
-            <>
-              <Link to="/catalog" className="btn btn-primary">
-                Browse catalogue
-              </Link>
-              <Link to="/cart" className="btn btn-ghost">
-                View cart
-              </Link>
-            </>
-          ) : (
-            <>
-              <a href="#sign-in" className="btn btn-primary">
-                Sign in
-              </a>
-              <a href="#register" className="btn btn-ghost">
-                Register pharmacy
-              </a>
-            </>
-          )}
-        </div>
-      </section>
+      )}
 
-      <main className="main main-public">
-        <section className="panel panel-muted" aria-live="polite">
-          <div className="panel-head">
-            <h2 className="panel-title-inline">Service status</h2>
-            {mp.health && !mp.healthError && (
-              <span className="status-pill status-pill-ok">Online</span>
-            )}
-            {mp.healthError && (
-              <span className="status-pill status-pill-bad">Unavailable</span>
-            )}
-          </div>
-          <p className="help help-tight">
-            {mp.healthError
-              ? 'We cannot reach the MediPro servers right now. Check your connection, or ask your distributor or IT team if the service is running.'
-              : 'You are connected to MediPro. Sign in below to access your catalogue and orders.'}
-          </p>
-          {mp.health && !mp.healthError && (
-            <dl className="kv kv-compact">
-              <dt>Service</dt>
-              <dd>{mp.health.service}</dd>
-              <dt>Last check (UTC)</dt>
-              <dd>{mp.health.timestampUtc}</dd>
-            </dl>
-          )}
-          {mp.healthError && (
-            <p className="error" role="alert">
-              {mp.healthError}
-            </p>
-          )}
-        </section>
+      <header className="home-head">
+        <h1 className="home-title">
+          {signedOut ? 'Order medicines for your pharmacy' : 'What would you like to do?'}
+        </h1>
+        <p className="home-sub">
+          {signedOut
+            ? 'Have a look around. Sign in when you are ready to order.'
+            : isAdmin
+              ? 'You are signed in as the distributor.'
+              : 'Tap any option below.'}
+        </p>
+      </header>
 
-        <section className="panel" id="sign-in">
-          <p className="panel-kicker">Account</p>
-          <div className="panel-head">
-            <h2>Sign in</h2>
-          </div>
-          <p className="help">
-            Use the email and password provided by your distributor. New pharmacies
-            can register below — your account stays pending until a distributor
-            approves your store.
-          </p>
-          {isDev && (
-            <details className="dev-disclosure">
-              <summary>Development tester sign-in</summary>
-              <p className="help help-tight">
-                Seeded admin: <code>{defaultAdminEmail}</code> /{' '}
-                <code>{defaultAdminPassword}</code>
-              </p>
-            </details>
-          )}
-          <div className="field">
-            <label htmlFor="email">Work email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              value={mp.email}
-              onChange={(e) => mp.setEmail(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={mp.password}
-              onChange={(e) => mp.setPassword(e.target.value)}
-            />
-          </div>
-          <div className="actions">
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={mp.busy === 'login'}
-              onClick={() => void mp.login()}
-            >
-              {mp.busy === 'login' ? 'Signing in…' : 'Sign in'}
-            </button>
-          </div>
-          {mp.authInfo && (
-            <p className="ok ok-block">
-              Signed in as <strong>{mp.authInfo.role}</strong>
-              {mp.authInfo.storeApprovalStatus
-                ? ` · Store: ${mp.authInfo.storeApprovalStatus}`
-                : ''}
-            </p>
-          )}
-          {mp.authError && (
-            <p className="error" role="alert">
-              {mp.authError}
-            </p>
-          )}
-        </section>
+      {mp.authInfo?.role === 'StoreUser' && !mp.canUseCart && (
+        <p className="notice" role="status">
+          Your pharmacy is waiting for approval. You can look at medicines and prices
+          now — ordering opens once the distributor approves you.
+        </p>
+      )}
 
-        <section className="panel" id="register">
-          <p className="panel-kicker">Pharmacy</p>
-          <div className="panel-head">
-            <h2>Register your pharmacy</h2>
-          </div>
-          <p className="help">
-            Create a MediPro account for your business. You will be signed in
-            immediately; ordering opens after your distributor approves your
-            registration. Signing up while already signed in will switch this
-            browser to the new pharmacy account.
-          </p>
-          <div className="field-grid">
-            <div className="field">
-              <label htmlFor="reg-email">Login email</label>
-              <input
-                id="reg-email"
-                type="email"
-                autoComplete="email"
-                value={mp.regEmail}
-                onChange={(e) => mp.setRegEmail(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-password">Password (at least 8 characters)</label>
-              <input
-                id="reg-password"
-                type="password"
-                autoComplete="new-password"
-                value={mp.regPassword}
-                onChange={(e) => mp.setRegPassword(e.target.value)}
-              />
-            </div>
-            <div className="field span-2">
-              <label htmlFor="reg-business">Pharmacy / business name</label>
-              <input
-                id="reg-business"
-                type="text"
-                value={mp.regBusinessName}
-                onChange={(e) => mp.setRegBusinessName(e.target.value)}
-              />
-            </div>
-            <div className="field span-2">
-              <label htmlFor="reg-address">Street address</label>
-              <input
-                id="reg-address"
-                type="text"
-                value={mp.regAddressLine}
-                onChange={(e) => mp.setRegAddressLine(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-city">City</label>
-              <input
-                id="reg-city"
-                type="text"
-                value={mp.regCity}
-                onChange={(e) => mp.setRegCity(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-mobile">Mobile</label>
-              <input
-                id="reg-mobile"
-                type="tel"
-                value={mp.regMobile}
-                onChange={(e) => mp.setRegMobile(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-contact">Contact person</label>
-              <input
-                id="reg-contact"
-                type="text"
-                value={mp.regContactName}
-                onChange={(e) => mp.setRegContactName(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-license">Drug sale licence number *</label>
-              <input
-                id="reg-license"
-                type="text"
-                required
-                value={mp.regLicenseNumber}
-                onChange={(e) => mp.setRegLicenseNumber(e.target.value)}
-                placeholder="Required for approval"
-                autoComplete="off"
-              />
-            </div>
-          </div>
-          <div className="actions">
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={
-                mp.busy === 'register-store' ||
-                mp.regPassword.length < 8 ||
-                !mp.regEmail.trim() ||
-                !mp.regBusinessName.trim() ||
-                !mp.regAddressLine.trim() ||
-                !mp.regCity.trim() ||
-                !mp.regMobile.trim() ||
-                !mp.regContactName.trim() ||
-                !mp.regLicenseNumber.trim()
-              }
-              onClick={() => void mp.registerStore()}
-            >
-              {mp.busy === 'register-store' ? 'Creating account…' : 'Create account'}
-            </button>
-          </div>
-          {mp.registerMsg && <p className="ok ok-block">{mp.registerMsg}</p>}
-          {mp.registerError && (
-            <p className="error" role="alert">
-              {mp.registerError}
-            </p>
-          )}
-        </section>
+      <nav className="tile-grid" aria-label="Main options">
+        {tiles.map((t) => (
+          <TileLink key={t.to} tile={t} />
+        ))}
+      </nav>
 
-        {mp.token && mp.isAdmin && (
-          <div className="callout callout-soft" role="status">
-            <strong>Distributor:</strong> use <strong>Admin</strong> in the menu
-            to approve pharmacies, update the product file, and read notifications.
-          </div>
-        )}
+      {signedOut && (
+        <>
+          <section className="home-cta">
+            <Link to="/login" className="btn btn-primary btn-lg">
+              <Icon name="signIn" />
+              Sign in
+            </Link>
+            <Link to="/login#register" className="btn btn-ghost btn-lg">
+              Register your pharmacy
+            </Link>
+          </section>
 
-        {mp.token && mp.authInfo?.role === 'StoreUser' && (
-          <div className="callout callout-soft" role="status">
-            <strong>Your pharmacy:</strong> catalogue and cart unlock when your
-            distributor marks your account as <strong>Approved</strong>.
-          </div>
-        )}
-
-        {isDev && (
-          <p className="footer-hint">
-            Seeded tester credentials appear in the <strong>Account</strong> section
-            when you run <code>npm run dev</code>.
-          </p>
-        )}
-      </main>
-    </>
+          <section className="home-steps" aria-labelledby="how-it-works">
+            <h2 className="home-section-title" id="how-it-works">
+              How it works
+            </h2>
+            <ol className="step-list">
+              {steps.map((s, i) => (
+                <li key={s.title} className="step">
+                  <span className="step-num" aria-hidden>
+                    {i + 1}
+                  </span>
+                  <span className="step-icon">
+                    <Icon name={s.icon} />
+                  </span>
+                  <span className="step-body">
+                    <span className="step-title">{s.title}</span>
+                    <span className="step-text">{s.text}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </>
+      )}
+    </main>
   )
 }

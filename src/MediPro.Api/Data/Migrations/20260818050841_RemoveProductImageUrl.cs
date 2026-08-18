@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace MediPro.Api.Data.Migrations
+{
+    /// <inheritdoc />
+    public partial class RemoveProductImageUrl : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "ImageUrl",
+                table: "Products");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "ImageUrl",
+                table: "Products",
+                type: "TEXT",
+                maxLength: 1024,
+                nullable: true);
+        }
+    }
+}

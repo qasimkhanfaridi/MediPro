@@ -31,7 +31,7 @@ export function OrdersPage() {
           <p className="page-lead">
             Sign in to see orders placed under your pharmacy or distributor account.
           </p>
-          <Link to="/" className="btn btn-primary">
+          <Link to="/login?next=%2Forders" className="btn btn-primary">
             Sign in
           </Link>
         </section>

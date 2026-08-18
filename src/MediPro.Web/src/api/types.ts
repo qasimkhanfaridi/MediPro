@@ -23,7 +23,6 @@ export type ProductDto = {
   mrp: number | null
   isActive: boolean
   stockQuantity: number | null
-  imageUrl?: string | null
   inStock?: boolean
   bonusLabel?: string | null
   bonusTitle?: string | null

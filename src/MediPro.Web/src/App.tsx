@@ -9,6 +9,7 @@ import { AdminPage } from './pages/AdminPage'
 import { CartPage } from './pages/CartPage'
 import { CatalogPage } from './pages/CatalogPage'
 import { HomePage } from './pages/HomePage'
+import { LoginPage } from './pages/LoginPage'
 import { OrdersPage } from './pages/OrdersPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 
@@ -17,6 +18,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<AppLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="login" element={<LoginPage />} />
         <Route path="catalog/:productId" element={<ProductDetailPage />} />
         <Route path="catalog" element={<CatalogPage />} />
         <Route path="cart" element={<CartPage />} />

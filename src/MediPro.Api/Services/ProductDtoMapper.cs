@@ -23,7 +23,6 @@ public class ProductDtoMapper(IOptions<InventoryOptions> inventory)
             TradePrice = p.TradePrice,
             Mrp = p.Mrp,
             IsActive = p.IsActive,
-            ImageUrl = p.ImageUrl,
             InStock = StockAvailability.IsInStock(p.StockQuantity),
         };
 

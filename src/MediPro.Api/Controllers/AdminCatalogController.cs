@@ -33,7 +33,7 @@ public class AdminCatalogController(
         var headers = new[]
         {
             "SkuCode", "Name", "Pack", "Manufacturer", "SaltComposition", "TradePrice", "Mrp", "StockQuantity",
-            "IsActive", "Category", "ImageUrl",
+            "IsActive", "Category",
         };
         for (var i = 0; i < headers.Length; i++)
             ws.Cell(1, i + 1).Value = headers[i];
@@ -48,7 +48,6 @@ public class AdminCatalogController(
         ws.Cell(2, 8).Value = 50;
         ws.Cell(2, 9).Value = true;
         ws.Cell(2, 10).Value = "Tablet";
-        ws.Cell(2, 11).Value = "https://picsum.photos/seed/sample-sku/400/280";
 
         ws.Columns().AdjustToContents();
 

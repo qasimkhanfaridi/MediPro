@@ -21,9 +21,6 @@ public class Product
     /// <summary>Optional quantity-on-hand for MVP stock signals.</summary>
     public int? StockQuantity { get; set; }
 
-    /// <summary>Optional pack shot or placeholder URL for catalogue UI.</summary>
-    public string? ImageUrl { get; set; }
-
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 

@@ -16,7 +16,7 @@ public sealed class ProductExcelImporter(MediProDbContext db)
 
     private static readonly string[] OptionalHeaders =
     [
-        "Mrp", "StockQuantity", "IsActive", "Category", "ImageUrl",
+        "Mrp", "StockQuantity", "IsActive", "Category",
     ];
 
     public async Task<ImportProductsResultDto> ImportAsync(Guid tenantId, Stream stream, CancellationToken ct)
@@ -139,17 +139,6 @@ public sealed class ProductExcelImporter(MediProDbContext db)
                 ? NullIfEmpty(GetCellString(ws, r, colMap, "Category"))
                 : null;
 
-            string? imageUrl = null;
-            if (colMap.ContainsKey(NormalizeHeader("ImageUrl")))
-            {
-                imageUrl = NullIfEmpty(GetCellString(ws, r, colMap, "ImageUrl"));
-                if (imageUrl is { Length: > 1024 })
-                {
-                    result.Errors.Add(new ImportRowErrorDto { RowNumber = r, Message = "ImageUrl exceeds 1024 characters." });
-                    continue;
-                }
-            }
-
             seenInFile.Add(sku);
             existingSet.Add(sku);
 
@@ -167,7 +156,6 @@ public sealed class ProductExcelImporter(MediProDbContext db)
                 Mrp = mrp,
                 IsActive = isActive,
                 StockQuantity = stockQty,
-                ImageUrl = imageUrl,
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now,
             });

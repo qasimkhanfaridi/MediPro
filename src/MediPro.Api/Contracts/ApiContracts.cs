@@ -84,7 +84,6 @@ public sealed class ProductDto
     public decimal? Mrp { get; set; }
     public bool IsActive { get; set; }
     public int? StockQuantity { get; set; }
-    public string? ImageUrl { get; set; }
     /// <summary>True when product can be ordered (null or positive stock; 0 = out).</summary>
     public bool InStock { get; set; } = true;
     /// <summary>Display label e.g. 10+1 when a bonus scheme applies.</summary>
@@ -150,9 +149,6 @@ public sealed class CreateProductRequest
     public decimal? Mrp { get; set; }
 
     public int? StockQuantity { get; set; }
-
-    [MaxLength(1024)]
-    public string? ImageUrl { get; set; }
 }
 
 public sealed class AdjustStockRequest
@@ -199,9 +195,6 @@ public sealed class UpdateProductRequest
     public bool? IsActive { get; set; }
 
     public int? StockQuantity { get; set; }
-
-    [MaxLength(1024)]
-    public string? ImageUrl { get; set; }
 }
 
 public sealed class AddCartItemRequest

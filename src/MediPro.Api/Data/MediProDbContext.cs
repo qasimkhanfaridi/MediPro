@@ -55,7 +55,6 @@ public class MediProDbContext(DbContextOptions<MediProDbContext> options) : DbCo
             e.Property(x => x.Manufacturer).HasMaxLength(256).IsRequired();
             e.Property(x => x.SaltComposition).HasMaxLength(512).IsRequired();
             e.Property(x => x.Category).HasMaxLength(128);
-            e.Property(x => x.ImageUrl).HasMaxLength(1024);
             e.Property(x => x.TradePrice).HasPrecision(18, 4);
             e.Property(x => x.Mrp).HasPrecision(18, 4);
             e.HasIndex(x => new { x.TenantId, x.SkuCode }).IsUnique();

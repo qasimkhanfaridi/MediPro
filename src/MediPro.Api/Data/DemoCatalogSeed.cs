@@ -7,10 +7,6 @@ public static class DemoCatalogSeed
 {
     public const string SkuPrefix = "TEST-MED-";
 
-    /// <summary>Placeholder images: one distinct image per SKU (Lorem Picsum, deterministic seed).</summary>
-    public static string ImageUrlForSku(string skuCode) =>
-        $"https://picsum.photos/seed/{Uri.EscapeDataString(skuCode)}/400/280";
-
     public static IReadOnlyList<Product> BuildProducts(Guid tenantId, DateTime nowUtc)
     {
         var rows = GetRows();
@@ -32,7 +28,6 @@ public static class DemoCatalogSeed
                 Mrp = r.Mrp,
                 IsActive = true,
                 StockQuantity = r.Stock,
-                ImageUrl = ImageUrlForSku(sku),
                 CreatedAtUtc = nowUtc,
                 UpdatedAtUtc = nowUtc,
             });

@@ -13,7 +13,7 @@ export function CartPage() {
             Sign in with an approved pharmacy account to build an order and submit
             it to your distributor.
           </p>
-          <Link to="/" className="btn btn-primary">
+          <Link to="/login?next=%2Fcart" className="btn btn-primary">
             Sign in
           </Link>
         </section>

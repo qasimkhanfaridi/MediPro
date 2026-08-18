@@ -84,7 +84,7 @@ export function CatalogPage() {
             Sign in to see your distributor&apos;s approved product list and trade
             prices.
           </p>
-          <Link to="/" className="btn btn-primary">
+          <Link to="/login?next=%2Fcatalog" className="btn btn-primary">
             Go to sign in
           </Link>
         </section>
@@ -257,17 +257,6 @@ export function CatalogPage() {
                 key={p.id}
                 className={`product-card${p.inStock === false ? ' product-card-out' : ''}`}
               >
-                {p.imageUrl ? (
-                  <div className="product-thumb-wrap">
-                    <img
-                      className="product-thumb"
-                      src={p.imageUrl}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ) : null}
                 <div className="product-card-top">
                   <span className="product-sku">{p.skuCode}</span>
                   {p.bonusLabel && (

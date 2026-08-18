@@ -254,9 +254,6 @@ public class ProductsController(MediProDbContext db, ProductDtoMapper productMap
             Mrp = request.Mrp,
             IsActive = true,
             StockQuantity = request.StockQuantity ?? null,
-            ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl)
-                ? null
-                : request.ImageUrl.Trim(),
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };
@@ -297,8 +294,6 @@ public class ProductsController(MediProDbContext db, ProductDtoMapper productMap
             product.IsActive = active;
         if (request.StockQuantity is not null)
             product.StockQuantity = request.StockQuantity;
-        if (request.ImageUrl is not null)
-            product.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
 
         product.UpdatedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);

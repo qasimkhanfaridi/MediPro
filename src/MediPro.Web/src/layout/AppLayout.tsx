@@ -1,5 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { Icon, type IconName } from '../components/Icon'
 import { useMediPro } from '../medipro/MediProProvider'
+
+type NavItem = { to: string; label: string; icon: IconName; end?: boolean }
 
 function navClass({ isActive }: { isActive: boolean }) {
   return 'app-navlink' + (isActive ? ' app-navlink-active' : '')
@@ -10,7 +13,19 @@ function dockClass({ isActive }: { isActive: boolean }) {
 }
 
 export function AppLayout() {
-  const { token, authInfo, isAdmin, logout } = useMediPro()
+  const { token, authInfo, isAdmin, canUseCart, cart, logout } = useMediPro()
+
+  const items: NavItem[] = [{ to: '/', label: 'Home', icon: 'home', end: true }]
+  items.push({ to: '/catalog', label: 'Medicines', icon: 'medicine' })
+  if (!isAdmin) items.push({ to: '/cart', label: 'Cart', icon: 'cart' })
+  items.push({
+    to: isAdmin ? '/admin/orders' : '/orders',
+    label: 'Orders',
+    icon: 'orders',
+  })
+  if (token && isAdmin) items.push({ to: '/admin', label: 'Admin', icon: 'console' })
+
+  const cartCount = canUseCart ? (cart?.lines.length ?? 0) : 0
 
   return (
     <div className="app">
@@ -21,42 +36,32 @@ export function AppLayout() {
             MediPro
           </NavLink>
           <nav className="app-nav" aria-label="Main">
-            <NavLink to="/" className={navClass} end>
-              Home
-            </NavLink>
-            <NavLink to="/catalog" className={navClass}>
-              Catalogue
-            </NavLink>
-            <NavLink to="/cart" className={navClass}>
-              Cart
-            </NavLink>
-            <NavLink to="/orders" className={navClass}>
-              Orders
-            </NavLink>
-            {token && isAdmin && (
-              <>
-                <NavLink to="/admin" className={navClass}>
-                  Admin
-                </NavLink>
-                <NavLink to="/admin/orders" className={navClass}>
-                  All orders
-                </NavLink>
-              </>
-            )}
+            {items.map((it) => (
+              <NavLink key={it.to} to={it.to} className={navClass} end={it.end}>
+                <Icon name={it.icon} />
+                {it.label}
+                {it.to === '/cart' && cartCount > 0 && (
+                  <span className="nav-count">{cartCount}</span>
+                )}
+              </NavLink>
+            ))}
           </nav>
           <div className="app-topbar-actions">
             {token && authInfo && (
               <span className="app-rolechip" title="Current session">
                 {authInfo.role === 'StoreUser' ? 'Pharmacy' : 'Distributor'}
-                {authInfo.storeApprovalStatus
-                  ? ` · ${authInfo.storeApprovalStatus}`
-                  : ''}
               </span>
             )}
-            {token && (
+            {token ? (
               <button type="button" className="secondary small" onClick={logout}>
+                <Icon name="signOut" />
                 Sign out
               </button>
+            ) : (
+              <NavLink to="/login" className="btn btn-primary btn-compact">
+                <Icon name="signIn" />
+                Sign in
+              </NavLink>
             )}
           </div>
         </div>
@@ -67,28 +72,17 @@ export function AppLayout() {
       </div>
 
       <nav className="app-dock" aria-label="Primary">
-        <NavLink to="/" className={dockClass} end>
-          Home
-        </NavLink>
-        <NavLink to="/catalog" className={dockClass}>
-          Shop
-        </NavLink>
-        <NavLink to="/cart" className={dockClass}>
-          Cart
-        </NavLink>
-        <NavLink to="/orders" className={dockClass}>
-          Orders
-        </NavLink>
-        {token && isAdmin && (
-          <>
-            <NavLink to="/admin" className={dockClass}>
-              Admin
-            </NavLink>
-            <NavLink to="/admin/orders" className={dockClass}>
-              Orders
-            </NavLink>
-          </>
-        )}
+        {items.map((it) => (
+          <NavLink key={it.to} to={it.to} className={dockClass} end={it.end}>
+            <span className="app-dock-icon">
+              <Icon name={it.icon} />
+              {it.to === '/cart' && cartCount > 0 && (
+                <span className="dock-count">{cartCount}</span>
+              )}
+            </span>
+            {it.label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   )
